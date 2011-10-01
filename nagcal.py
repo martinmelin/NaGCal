@@ -85,8 +85,11 @@ class UTC(datetime.tzinfo):
 
 now = datetime.datetime.now(UTC())
 
+# a bit ugly, but gets the job done
 for shift in shifts:
-    if now > shift.start:
-        if now < shift.end:
-            print "%s is %s away from ending!" % (shift.title, shift.end - now)
-            break
+    if now <= shift.start:
+        continue
+    if now >= shift.end:
+        continue
+    print "%s is %s away from ending!" % (shift.title, shift.end - now)
+    break
