@@ -92,4 +92,9 @@ for shift in shifts:
     if now >= shift.end:
         continue
     print "%s is %s away from ending!" % (shift.title, shift.end - now)
+    current_shift = shift
     break
+
+if current_shift is None:
+    print "Error, no active shift at %s" % now
+    sys.exit(3)
