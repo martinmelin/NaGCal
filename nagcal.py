@@ -67,6 +67,12 @@ class ShiftCalendar:
         if self.have_synced: # only sync once per instance
             return True
 
+        use_cache = False
+        calendar_file = open(self.calendar_file, 'r')
+        cached_shifts = []
+        for line in calendar_file:
+            cached_shifts.append(Shift.loads(line))
+
         try:
             client = self.get_client()
             shifts = []
@@ -79,17 +85,20 @@ class ShiftCalendar:
                             iso8601.parse_date(event.when[0].end)
                         ))
         except:
-            calendar_file = open(self.calendar_file, 'r')
-            shifts = []
-            for line in calendar_file:
-                shifts.append(Shift.loads(line))
+            use_cache = True
 
         # sort shifts according to start date/time (not guaranteed to be in order in feed)
-        self.shifts = sorted(shifts, key=attrgetter('start'))
-        calendar_file = open(self.calendar_file, 'w')
-        for shift in self.shifts:
-            calendar_file.write("%s\n" % (shift.dumps()))
-        calendar_file.close()
+        if use_cache:
+            self.shifts = cached_shifts
+        else:
+            # sort shifts according to start date/time (not guaranteed to be in order in feed)
+            self.shifts = sorted(shifts, key=attrgetter('start'))
+            # persist synced calendar to disk cache
+            calendar_file = open(self.calendar_file, 'w')
+            for shift in self.shifts:
+                calendar_file.write("%s\n" % (shift.dumps()))
+            calendar_file.close()
+
         self.have_synced = True
         return len(self.shifts)
 
