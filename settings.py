@@ -1,5 +1,4 @@
 GOOGLE_CALENDAR_URL = "https://www.google.com/calendar/feeds/martinmelin.se_bn9l4bvq0b9mlr51u2592k7uvg%40group.calendar.google.com/private/full"
-GOOGLE_CALENDAR_URL = ""
 CALENDAR_FILE = "calendar.dat"
 CREDENTIALS_FILE = "google.dat"
 
