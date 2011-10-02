@@ -1,25 +1,16 @@
 #!python
-from lib import Shift, UTC
+from lib import Shift, ShiftCalendar, UTC
 import settings
 import datetime
 
-calendar_file = open(settings.NAGCAL_CALENDAR_FILE, 'r')
-shifts = []
-for line in calendar_file:
-    shifts.append(Shift.loads(line))
+sc = ShiftCalendar(settings.GOOGLE_CALENDAR_URL, settings.CALENDAR_FILE, settings.OAUTH_SETTINGS)
+if not sc.credentials_ok():
+    print >> sys.stderr, "Invalid credentials, run setup!"
+    sys.exit(5)
 
-now = datetime.datetime.now(UTC())
-
-# a bit ugly, but gets the job done
-for shift in shifts:
-    if now <= shift.start:
-        continue
-    if now >= shift.end:
-        continue
-    print "%s is %s away from ending!" % (shift.title, shift.end - now)
-    current_shift = shift
-    break
-
+current_shift = sc.get_current_shift()
 if current_shift is None:
     print "Error, no active shift at %s" % now
     sys.exit(3)
+
+print "Current shift is: %s" % current_shift
