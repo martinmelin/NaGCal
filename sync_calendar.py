@@ -24,7 +24,7 @@ try:
 except ImportError:
     from elementtree import ElementTree
 
-storage = Storage('google.dat')
+storage = Storage(NAGCAL_CREDENTIALS_FILE)
 credentials = storage.get()
 FLAGS = gflags.FLAGS
 FLAGS.auth_local_webserver = False
@@ -35,7 +35,7 @@ if credentials is None or credentials.invalid == True:
             client_secret = GOOGLE_CLIENT_SECRET,
             scope = GOOGLE_SCOPE,
             user_agent = NAGCAL_USER_AGENT,
-            xoauth_displayname = 'NaGCal Dev')
+            xoauth_displayname = NAGCAL_OAUTH_DISPLAYNAME)
     credentials = run(flow, storage)
 if credentials.access_token_expired:
     credentials._refresh(httplib2.Http().request)

@@ -1,6 +1,4 @@
 #!python
-NAGCAL_CALENDAR_FILE = "calendar.dat"
-
 from settings import * # only constants
 from lib import Shift, UTC
 import datetime
