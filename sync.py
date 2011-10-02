@@ -1,5 +1,5 @@
 #!python
-from lib import ShiftCalendar
+from nagcal import ShiftCalendar
 import settings
 import sys
 
