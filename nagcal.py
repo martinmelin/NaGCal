@@ -91,6 +91,8 @@ class ShiftCalendar:
         return len(self.shifts)
 
     def get_current_shift(self):
+        if not self.have_synced:
+            self.sync()
         if self.shifts is None:
             calendar_file = open(self.calendar_file, 'r')
             shifts = []
