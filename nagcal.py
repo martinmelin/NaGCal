@@ -67,37 +67,35 @@ class ShiftCalendar:
         if self.have_synced: # only sync once per instance
             return True
 
-        client = self.get_client()
+        try:
+            client = self.get_client()
+            shifts = []
+            event_feed = client.GetCalendarEventFeed(uri=self.calendar_url)
+            for event in event_feed.entry:
+                shifts.append(
+                        Shift(
+                            event.title.text,
+                            iso8601.parse_date(event.when[0].start),
+                            iso8601.parse_date(event.when[0].end)
+                        ))
+        except:
+            calendar_file = open(self.calendar_file, 'r')
+            shifts = []
+            for line in calendar_file:
+                shifts.append(Shift.loads(line))
 
-        shifts = []
-        event_feed = client.GetCalendarEventFeed(uri=self.calendar_url)
-        for event in event_feed.entry:
-            shifts.append(
-                    Shift(
-                        event.title.text,
-                        iso8601.parse_date(event.when[0].start),
-                        iso8601.parse_date(event.when[0].end)
-                    ))
         # sort shifts according to start date/time (not guaranteed to be in order in feed)
         self.shifts = sorted(shifts, key=attrgetter('start'))
-
         calendar_file = open(self.calendar_file, 'w')
         for shift in self.shifts:
             calendar_file.write("%s\n" % (shift.dumps()))
         calendar_file.close()
-
         self.have_synced = True
-
         return len(self.shifts)
 
     def get_current_shift(self):
         if not self.have_synced:
             self.sync()
-        if self.shifts is None:
-            calendar_file = open(self.calendar_file, 'r')
-            shifts = []
-            for line in calendar_file:
-                shifts.append(Shift.loads(line))
         else:
             shifts = self.shifts
         current_shift = None
