@@ -1,9 +1,9 @@
 #!python
-from settings import * # only constants
 from lib import Shift, UTC
+import settings
 import datetime
 
-calendar_file = open(NAGCAL_CALENDAR_FILE, 'r')
+calendar_file = open(settings.NAGCAL_CALENDAR_FILE, 'r')
 shifts = []
 for line in calendar_file:
     shifts.append(Shift.loads(line))
