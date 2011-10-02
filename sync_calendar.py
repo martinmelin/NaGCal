@@ -26,8 +26,7 @@ except ImportError:
 
 storage = Storage(NAGCAL_CREDENTIALS_FILE)
 credentials = storage.get()
-FLAGS = gflags.FLAGS
-FLAGS.auth_local_webserver = False
+gflags.FLAGS.auth_local_webserver = False
 
 if credentials is None or credentials.invalid == True:
     flow = OAuth2WebServerFlow(
@@ -40,7 +39,11 @@ if credentials is None or credentials.invalid == True:
 if credentials.access_token_expired:
     credentials._refresh(httplib2.Http().request)
 
-token = gdata.gauth.OAuth2Token(GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, GOOGLE_SCOPE, NAGCAL_USER_AGENT,
+token = gdata.gauth.OAuth2Token(
+        GOOGLE_CLIENT_ID,
+        GOOGLE_CLIENT_SECRET,
+        GOOGLE_SCOPE,
+        NAGCAL_USER_AGENT,
         access_token = credentials.access_token,
         refresh_token = credentials.refresh_token)
 
