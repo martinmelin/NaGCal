@@ -3,7 +3,6 @@ import sys
 import json
 import time
 import gflags
-import iso8601
 import httplib2
 import datetime
 import settings
@@ -16,6 +15,7 @@ import gdata.contacts.data
 import gdata.calendar.data
 import gdata.contacts.client
 import gdata.calendar.client
+from iso8601 import parse_date # pylint: disable=E0611
 from operator import attrgetter
 from optparse import OptionParser
 from oauth2client.file import Storage
@@ -100,8 +100,8 @@ class ShiftCalendar:
                 shifts.append(
                         Shift(
                             event.title.text,
-                            iso8601.parse_date(event.when[0].start),
-                            iso8601.parse_date(event.when[0].end)
+                            parse_date(event.when[0].start),
+                            parse_date(event.when[0].end)
                         ))
                 # download contact info if this is the first time we see this title,
                 # otherwise person will be grabbed from self.people
@@ -184,7 +184,7 @@ class Shift:
     @staticmethod
     def loads(string):
         s = string.split("\t")
-        return Shift(s[2], iso8601.parse_date(s[0]), iso8601.parse_date(s[1]))
+        return Shift(s[2], parse_date(s[0]), parse_date(s[1]))
 
 class Person:
     def __init__(self, query, email = None, phone = None):
