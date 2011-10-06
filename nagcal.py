@@ -148,9 +148,9 @@ class ShiftCalendar:
                 person['email'] = email.address
         phone_numbers = {}
         for phone in current_entry.phone_number:
-            rel = phone.rel.split("#").pop()
+            rel = phone.rel.split("#").pop() # for example: http://schemas.google.com/g/2005#mobile
             phone_numbers[rel] = phone.text
-        if 'mobile' in phone_numbers:
+        if 'mobile' in phone_numbers: # TODO: this should probably be configurable
             person['phone'] = phone_numbers['mobile']
         elif 'work' in phone_numbers:
             person['phone'] = phone_numbers['work']
