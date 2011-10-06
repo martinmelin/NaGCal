@@ -8,5 +8,5 @@ OAUTH_SETTINGS = {
         'display_name': "NaGCal (dev)",
         'client_id': "648533157291.apps.googleusercontent.com",
         'client_secret': "2J_3dxA-dU5lYeRXibb29MXo",
-        'scope': ["https://www.google.com/calendar/feeds/", "https://www.google.com/m8/feeds"],
+        'scope': "https://www.google.com/calendar/feeds/ https://www.google.com/m8/feeds",
         }
