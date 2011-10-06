@@ -87,7 +87,6 @@ class ShiftCalendar:
         except:
             use_cache = True
 
-        # sort shifts according to start date/time (not guaranteed to be in order in feed)
         if use_cache:
             self.shifts = cached_shifts
         else:
@@ -105,12 +104,10 @@ class ShiftCalendar:
     def get_current_shift(self):
         if not self.have_synced:
             self.sync()
-        else:
-            shifts = self.shifts
         current_shift = None
         now = datetime.datetime.now(UTC())
         # a bit ugly, but gets the job done
-        for shift in shifts:
+        for shift in self.shifts:
             if now <= shift.start:
                 continue
             if now >= shift.end:
