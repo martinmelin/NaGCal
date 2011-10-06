@@ -272,15 +272,15 @@ if __name__ == "__main__":
         parser.print_help()
         sys.exit(os.EX_USAGE)
 
-    sc = ShiftCalendar(settings.GOOGLE_CALENDAR_URL, settings.CALENDAR_FILE, settings.CONTACTS_FILE, settings.OAUTH_SETTINGS)
+    shift_calendar = ShiftCalendar(settings.GOOGLE_CALENDAR_URL, settings.CALENDAR_FILE, settings.CONTACTS_FILE, settings.OAUTH_SETTINGS)
 
-    if options.action != SYNC and not sc.credentials_ok():
+    if options.action != SYNC and not shift_calendar.credentials_ok():
         print >> sys.stderr, "Invalid credentials, run --sync for initial setup!"
         sys.exit(os.EX_CONFIG)
 
     if options.action == SYNC:
-        if not sc.credentials_ok():
-            success = sc.setup_credentials()
+        if not shift_calendar.credentials_ok():
+            success = shift_calendar.setup_credentials()
             if not success:
                 print >> sys.stderr, "Wasn't able to set up OAuth credentials correctly, bailing out."
                 sys.exit(os.EX_CONFIG)
@@ -288,7 +288,7 @@ if __name__ == "__main__":
             print "No calendar URL configured! " + \
                     "Please set settings.GOOGLE_CALENDAR_URL to one of the below URLs"
             calendars = []
-            calendar_feed = sc.get_calendar_feed()
+            calendar_feed = shift_calendar.get_calendar_feed()
             for calendar in calendar_feed.entry:
                 print "%s\n%s\n%s\n" % (
                         calendar.title.text,
@@ -296,13 +296,13 @@ if __name__ == "__main__":
                         calendar.content.src)
             print >> sys.stderr, "Bailing out because settings.GOOGLE_CALENDAR_URL is not set."
             sys.exit(os.EX_CONFIG)
-        no_of_shifts = sc.sync()
+        no_of_shifts = shift_calendar.sync()
         if options.verbose:
             print "Wrote %s shifts to %s" % (no_of_shifts, settings.CALENDAR_FILE)
-            print "Also see %s for contacts discovered." % settings.CONTACTS_FILE
+            print "Also see %s for contacts dishift_calendarovered." % settings.CONTACTS_FILE
 
     if options.action == CURRENT:
-        current_person = sc.get_current_person()
+        current_person = shift_calendar.get_current_person()
         if options.value == EMAIL:
             print current_person.email
         elif options.value == PHONE:
