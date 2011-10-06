@@ -1,12 +1,9 @@
 import os
 import sys
-import json
-import time
 import gflags
 import httplib2
 import datetime
 import settings
-import atom.data
 import gdata.data
 import gdata.gauth
 import gdata.acl.data
@@ -124,7 +121,7 @@ class ShiftCalendar:
 
             # persist synced contacts to disk cache
             contacts_file = open(self.contacts_file , 'w')
-            for query, person in self.people.items():
+            for person in self.people.values():
                 contacts_file.write("%s\n" % (person.dumps()))
             contacts_file.close()
 
@@ -162,8 +159,7 @@ class ShiftCalendar:
         if not self.have_synced:
             self.sync()
         current_shift = self.get_current_shift()
-        current_person = self.get_person(current_shift.title)
-        return current_person
+        return self.get_person(current_shift.title)
 
     def get_calendar_feed(self):
         client = self.get_calendar_client()
@@ -243,13 +239,13 @@ class Person:
         return Shift(s[0], s[1], s[2])
 
 class UTC(datetime.tzinfo):
-    def utcoffset(self, dt):
+    def utcoffset(self, _):
         return datetime.timedelta(0)
 
-    def tzname(self, dt):
+    def tzname(self, _):
         return "UTC"
 
-    def dst(self, dt):
+    def dst(self, _):
         return datetime.timedelta(0)
 
 if __name__ == "__main__":
