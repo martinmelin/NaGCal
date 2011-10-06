@@ -263,11 +263,11 @@ if __name__ == "__main__":
     parser.add_option("-s", "--sync", action="store_const", const=SYNC, dest="action",
             help="sync calendar and contacts from Google")
     parser.add_option("-c", "--current", action="store_const", const=CURRENT, dest="action",
-            help="echo current shift's phone or email, depending on -e or -p")
+            help="echo current shift's phone or email (use with -e or -p)")
     parser.add_option("-e", "--email", action="store_const", const=EMAIL, dest="value",
-            help="print current shift's email to STDOUT")
+            help="echo current shift's email")
     parser.add_option("-p", "--phone", action="store_const", const=PHONE, dest="value",
-            help="print current shift's phone number to STDOUT")
+            help="echo current shift's phone number")
     parser.add_option("-v", "--verbose", action="store_true", dest="verbose",
             help="Make script a bit more talkative")
     (options, args) = parser.parse_args(sys.argv)
