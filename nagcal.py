@@ -6,18 +6,17 @@ import iso8601
 import httplib2
 import datetime
 import atom.data
+import gdata.data
 import gdata.gauth
 import gdata.acl.data
 import oauth2client.tools
+import gdata.contacts.data
 import gdata.calendar.data
+import gdata.contacts.client
 import gdata.calendar.client
 from operator import attrgetter
 from oauth2client.file import Storage
 from oauth2client.client import OAuth2WebServerFlow
-try:
-    from xml.etree import ElementTree
-except ImportError:
-    from elementtree import ElementTree
 
 class ShiftCalendar:
     def __init__(self, calendar_url, calendar_file, oauth_settings):
@@ -29,6 +28,7 @@ class ShiftCalendar:
         self.oauth_settings = oauth_settings
         self.have_synced = False
         self.shifts = None
+        self.token = None
 
     def credentials_ok(self):
         if self.credentials is None or self.credentials.invalid == True:
@@ -45,22 +45,30 @@ class ShiftCalendar:
         self.credentials = oauth2client.tools.run(flow, self.storage)
         return not self.credentials.invalid
 
-    def get_client(self):
+    def get_token(self):
         if self.credentials.access_token_expired:
             self.credentials._refresh(httplib2.Http().request)
+            self.token = None # need a new token if we had to refresh credentials
+        if self.token is None:
+            self.token = gdata.gauth.OAuth2Token(
+                    self.oauth_settings['client_id'],
+                    self.oauth_settings['client_secret'],
+                    self.oauth_settings['scope'],
+                    self.oauth_settings['user_agent'],
+                    access_token = self.credentials.access_token,
+                    refresh_token = self.credentials.refresh_token)
+        return self.token
 
-        token = gdata.gauth.OAuth2Token(
-                self.oauth_settings['client_id'],
-                self.oauth_settings['client_secret'],
-                self.oauth_settings['scope'],
-                self.oauth_settings['user_agent'],
-                access_token = self.credentials.access_token,
-                refresh_token = self.credentials.refresh_token)
+    def get_contacts_client(self):
+        client = gdata.contacts.client.ContactsClient(
+                source=self.oauth_settings['user_agent'])
+        client.auth_token = self.get_token()
+        return client
 
+    def get_calendar_client(self):
         client = gdata.calendar.client.CalendarClient(
                 source=self.oauth_settings['user_agent'])
-        client.auth_token = token
-
+        client.auth_token = self.get_token()
         return client
 
     def sync(self):
@@ -74,7 +82,7 @@ class ShiftCalendar:
             cached_shifts.append(Shift.loads(line))
 
         try:
-            client = self.get_client()
+            client = self.get_calendar_client()
             shifts = []
             event_feed = client.GetCalendarEventFeed(uri=self.calendar_url)
             for event in event_feed.entry:
@@ -114,10 +122,45 @@ class ShiftCalendar:
                 continue
             current_shift = shift
             break
+        if current_shift is None:
+            pass # TODO: log warning when no current shift was found
         return current_shift
 
+    def get_current_person(self):
+        current_shift = self.get_current_shift()
+        client = self.get_contacts_client()
+        query = gdata.contacts.client.ContactsQuery()
+        query.text_query = current_shift.title
+        feed = client.GetContacts(q = query)
+        current_entry = None
+        if len(feed.entry) == 1:
+            current_entry = feed.entry[0]
+        elif len(feed.entry) > 1:
+            current_entry = feed.entry[0]
+            # TODO: log warning that calendar titles are too broad
+        if current_entry is None:
+            print "Fatal error: current shift does not match any person in contacts! Query was: '%s'" % current_shift.title
+            sys.exit(10)
+            # TODO: handle this better
+        person = {'email': None, 'phone': None}
+        for email in entry.email:
+            if email.primary and email.primary == 'true':
+                person['email'] = email.address
+        phone_numbers = {}
+        for phone in entry.phone_number:
+            if '#' in phone.rel:
+                (None, rel) = phone.rel.split("#")
+            else:
+                rel = phone.rel
+            phone_numbers[rel] = phone.text
+        if 'mobile' in phone_numbers:
+            person['phone'] = phone_numbers['mobile']
+        elif 'work' in phone_numbers:
+            person['phone'] = phone_numbers['work']
+        return person
+
     def get_calendar_feed(self):
-        client = self.get_client()
+        client = self.get_calendar_client()
         return client.GetAllCalendarsFeed()
 
 class Shift:
