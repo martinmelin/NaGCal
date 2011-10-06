@@ -148,10 +148,7 @@ class ShiftCalendar:
                 person['email'] = email.address
         phone_numbers = {}
         for phone in entry.phone_number:
-            if '#' in phone.rel:
-                (None, rel) = phone.rel.split("#")
-            else:
-                rel = phone.rel
+            rel = phone.rel.split("#").pop()
             phone_numbers[rel] = phone.text
         if 'mobile' in phone_numbers:
             person['phone'] = phone_numbers['mobile']
