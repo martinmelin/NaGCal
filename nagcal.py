@@ -143,11 +143,11 @@ class ShiftCalendar:
             sys.exit(10)
             # TODO: handle this better
         person = {'email': None, 'phone': None}
-        for email in entry.email:
+        for email in current_entry.email:
             if email.primary and email.primary == 'true':
                 person['email'] = email.address
         phone_numbers = {}
-        for phone in entry.phone_number:
+        for phone in current_entry.phone_number:
             rel = phone.rel.split("#").pop()
             phone_numbers[rel] = phone.text
         if 'mobile' in phone_numbers:
