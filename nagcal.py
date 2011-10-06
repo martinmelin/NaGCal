@@ -1,3 +1,4 @@
+import os
 import sys
 import json
 import time
@@ -214,7 +215,7 @@ class Person:
                 # TODO: log warning that calendar titles are too broad
             if entry is None:
                 print "Fatal error: current shift does not match any person in contacts! Query was: '%s'" % current_shift.title
-                sys.exit(10)
+                sys.exit(os.EX_DATAERR)
                 # TODO: handle this better
             person = {'email': None, 'phone': None}
             for email in entry.email:
@@ -273,20 +274,20 @@ if __name__ == "__main__":
 
     if options.action is None:
         parser.print_help()
-        sys.exit(127)
+        sys.exit(os.EX_USAGE)
 
     sc = ShiftCalendar(settings.GOOGLE_CALENDAR_URL, settings.CALENDAR_FILE, settings.CONTACTS_FILE, settings.OAUTH_SETTINGS)
 
     if options.action != SYNC and not sc.credentials_ok():
         print >> sys.stderr, "Invalid credentials, run --sync for initial setup!"
-        sys.exit(5)
+        sys.exit(os.EX_CONFIG)
 
     if options.action == SYNC:
         if not sc.credentials_ok():
             success = sc.setup_credentials()
             if not success:
                 print >> sys.stderr, "Wasn't able to set up OAuth credentials correctly, bailing out."
-                sys.exit(5)
+                sys.exit(os.EX_CONFIG)
         if settings.GOOGLE_CALENDAR_URL is None or len(settings.GOOGLE_CALENDAR_URL) == 0:
             print "No calendar URL configured! " + \
                     "Please set settings.GOOGLE_CALENDAR_URL to one of the below URLs"
@@ -298,7 +299,7 @@ if __name__ == "__main__":
                         "-" * len(calendar.title.text),
                         calendar.content.src)
             print >> sys.stderr, "Bailing out because settings.GOOGLE_CALENDAR_URL is not set."
-            sys.exit(4)
+            sys.exit(os.EX_CONFIG)
         no_of_shifts = sc.sync()
         if options.verbose:
             print "Wrote %s shifts to %s" % (no_of_shifts, settings.CALENDAR_FILE)
@@ -312,4 +313,4 @@ if __name__ == "__main__":
             print current_person.phone
         else:
             parser.print_help()
-            sys.exit(127)
+            sys.exit(os.EX_USAGE)
