@@ -214,7 +214,7 @@ class Person:
                 entry = feed.entry[0]
                 # TODO: log warning that calendar titles are too broad
             if entry is None:
-                print "Fatal error: current shift does not match any person in contacts! Query was: '%s'" % current_shift.title
+                print "Fatal error: current shift does not match any person in contacts! Query was: '%s'" % self.query
                 sys.exit(os.EX_DATAERR)
                 # TODO: handle this better
             person = {'email': None, 'phone': None}
