@@ -51,7 +51,7 @@ class ShiftCalendar:
     def get_token(self):
         if self.credentials.access_token_expired:
             self.credentials._refresh(httplib2.Http().request)
-            self.token = None # need a new token if we had to refresh credentials
+            self.token = None # need a new token after refreshing
         if self.token is None:
             self.token = gdata.gauth.OAuth2Token(
                     self.oauth_settings['client_id'],
@@ -100,7 +100,7 @@ class ShiftCalendar:
                             parse_date(event.when[0].start),
                             parse_date(event.when[0].end)
                         ))
-                # download contact info if this is the first time we see this title,
+                # download contact info the first time we see this title,
                 # otherwise person will be grabbed from self.people
                 self.get_person(event.title.text)
         except:
@@ -110,7 +110,7 @@ class ShiftCalendar:
             self.shifts = cached_shifts
             self.people = cached_people
         else: # we have synced successfully, so cache to disk
-            # sort shifts according to start date/time (not guaranteed to be in order in feed)
+            # sort shifts according to start date (feed order not guaranteed)
             self.shifts = sorted(shifts, key=attrgetter('start'))
 
             # persist synced calendar to disk cache
@@ -179,8 +179,8 @@ class Shift:
 
     @staticmethod
     def loads(string):
-        s = string.split("\t")
-        return Shift(s[2], parse_date(s[0]), parse_date(s[1]))
+        string = string.split("\t")
+        return Shift(string[2], parse_date(string[0]), parse_date(string[1]))
 
 class Person:
     def __init__(self, query, email = None, phone = None):
@@ -219,9 +219,10 @@ class Person:
                     person['email'] = email.address
             phone_numbers = {}
             for phone in entry.phone_number:
-                rel = phone.rel.split("#").pop() # for example: http://schemas.google.com/g/2005#mobile
+                # rel example: http://schemas.google.com/g/2005#mobile
+                rel = phone.rel.split("#").pop()
                 phone_numbers[rel] = phone.text
-            if 'mobile' in phone_numbers: # TODO: this should probably be configurable
+            if 'mobile' in phone_numbers: # TODO: this should be configurable
                 person['phone'] = phone_numbers['mobile']
             elif 'work' in phone_numbers:
                 person['phone'] = phone_numbers['work']
@@ -235,8 +236,8 @@ class Person:
 
     @staticmethod
     def loads(string):
-        s = string.split("\t")
-        return Shift(s[0], s[1], s[2])
+        string = string.split("\t")
+        return Shift(string[0], string[1], string[2])
 
 class UTC(datetime.tzinfo):
     def utcoffset(self, _):
@@ -256,37 +257,43 @@ if __name__ == "__main__":
 
     usage = "usage: %prog [options]"
     parser = OptionParser(usage=usage)
-    parser.add_option("-s", "--sync", action="store_const", const=SYNC, dest="action",
-            help="sync calendar and contacts from Google")
-    parser.add_option("-c", "--current", action="store_const", const=CURRENT, dest="action",
-            help="echo current shift's phone or email (use with -e or -p)")
-    parser.add_option("-e", "--email", action="store_const", const=EMAIL, dest="value",
-            help="echo current shift's email")
-    parser.add_option("-p", "--phone", action="store_const", const=PHONE, dest="value",
-            help="echo current shift's phone number")
-    parser.add_option("-v", "--verbose", action="store_true", dest="verbose",
-            help="Make script a bit more talkative")
+    parser.add_option("-s", "--sync", action="store_const", const=SYNC,
+            dest="action", help="sync calendar and contacts from Google")
+    parser.add_option("-c", "--current", action="store_const", const=CURRENT,
+            dest="action", help="use with --email or --phone")
+    parser.add_option("-e", "--email", action="store_const", const=EMAIL,
+            dest="value", help="echo current shift's email")
+    parser.add_option("-p", "--phone", action="store_const", const=PHONE,
+            dest="value", help="echo current shift's phone number")
+    parser.add_option("-v", "--verbose", action="store_true",
+            dest="verbose", help="Make script a bit more talkative")
     (options, args) = parser.parse_args(sys.argv)
 
     if options.action is None:
         parser.print_help()
         sys.exit(os.EX_USAGE)
 
-    shift_calendar = ShiftCalendar(settings.GOOGLE_CALENDAR_URL, settings.CALENDAR_FILE, settings.CONTACTS_FILE, settings.OAUTH_SETTINGS)
+    shift_calendar = ShiftCalendar(
+            settings.GOOGLE_CALENDAR_URL,
+            settings.CALENDAR_FILE,
+            settings.CONTACTS_FILE,
+            settings.OAUTH_SETTINGS)
 
     if options.action != SYNC and not shift_calendar.credentials_ok():
-        print >> sys.stderr, "Invalid credentials, run --sync for initial setup!"
+        print >> sys.stderr, "Bad credentials, run --sync for initial setup!"
         sys.exit(os.EX_CONFIG)
 
     if options.action == SYNC:
         if not shift_calendar.credentials_ok():
             success = shift_calendar.setup_credentials()
             if not success:
-                print >> sys.stderr, "Wasn't able to set up OAuth credentials correctly, bailing out."
+                print >> sys.stderr, "OAuth setup failed, check settings!"
                 sys.exit(os.EX_CONFIG)
-        if settings.GOOGLE_CALENDAR_URL is None or len(settings.GOOGLE_CALENDAR_URL) == 0:
+        if settings.GOOGLE_CALENDAR_URL is None or \
+                len(settings.GOOGLE_CALENDAR_URL) == 0:
             print "No calendar URL configured! " + \
-                    "Please set settings.GOOGLE_CALENDAR_URL to one of the below URLs"
+                    "Please set settings.GOOGLE_CALENDAR_URL to " + \
+                    "one of the URLs from the below list:\n"
             calendars = []
             calendar_feed = shift_calendar.get_calendar_feed()
             for calendar in calendar_feed.entry:
@@ -294,12 +301,12 @@ if __name__ == "__main__":
                         calendar.title.text,
                         "-" * len(calendar.title.text),
                         calendar.content.src)
-            print >> sys.stderr, "Bailing out because settings.GOOGLE_CALENDAR_URL is not set."
+            print >> sys.stderr, "settings.GOOGLE_CALENDAR_URL is not set!"
             sys.exit(os.EX_CONFIG)
-        no_of_shifts = shift_calendar.sync()
+        count = shift_calendar.sync()
         if options.verbose:
-            print "Wrote %s shifts to %s" % (no_of_shifts, settings.CALENDAR_FILE)
-            print "Also see %s for contacts dishift_calendarovered." % settings.CONTACTS_FILE
+            print "Wrote %s shifts to %s" % (count, settings.CALENDAR_FILE)
+            print "Discovered contacts written to %s" % settings.CONTACTS_FILE
 
     if options.action == CURRENT:
         current_person = shift_calendar.get_current_person()
