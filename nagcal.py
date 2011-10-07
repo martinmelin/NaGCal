@@ -188,6 +188,16 @@ class ShiftCalendar:
             logging.error("Was unable to find a shift that overlaps with %s", now)
         return current_shift
 
+    def get_last_shift(self):
+        """Return the Shift object that is last in current calendar. Will sync if we haven't already."""
+        if not self.have_synced:
+            self.sync()
+        last_shift = None
+        last_shift = self.shifts.pop()
+        if last_shift is None:
+            logging.error("Was asked for last shift, but there are no shifts!")
+        return last_shift
+
     def get_current_person(self):
         """Return the Person object associated with the Shift that is considered current. Will sync if haven't already."""
         if not self.have_synced:
@@ -303,6 +313,7 @@ if __name__ == "__main__":
     PHONE = 1
     SYNC = 2
     CURRENT = 3
+    LAST = 4
 
     usage = "usage: %prog [options]"
     parser = OptionParser(usage=usage)
@@ -310,6 +321,8 @@ if __name__ == "__main__":
             dest="action", help="sync calendar and contacts from Google")
     parser.add_option("-c", "--current", action="store_const", const=CURRENT,
             dest="action", help="use with --email or --phone")
+    parser.add_option("-l", "--last-shift", action="store_const", const=LAST,
+            dest="action", help="echo number of days until end of last shift in calendar")
     parser.add_option("-e", "--email", action="store_const", const=EMAIL,
             dest="value", help="echo current shift's email")
     parser.add_option("-p", "--phone", action="store_const", const=PHONE,
@@ -378,3 +391,16 @@ if __name__ == "__main__":
         else:
             parser.print_help()
             sys.exit(os.EX_USAGE)
+
+    if options.action == LAST:
+        last_shift = shift_calendar.get_last_shift()
+        now = datetime.datetime.now(UTC())
+        time_left = last_shift.end - now
+        print time_left.days
+        if options.verbose:
+            last_person = Person(last_shift.title)
+            last_person.update(shift_calendar.get_contacts_client())
+            print "Person: %s" % last_person.query
+            print "E-mail: %s" % last_person.email
+            print "Phone#: %s" % last_person.phone
+            print "Ends in %s" % time_left
