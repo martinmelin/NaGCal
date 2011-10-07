@@ -26,7 +26,7 @@ class ShiftCalendar:
         """Initialize a new ShiftCalendar
 
         Arguments:
-        calendar_url -- URL to the Google Calendar to work with.
+        calendar_url -- URL to the Google Calendar to work with
         calendar_file -- path to file where calendar contents should be cached
         contacts_file -- path to file where contacts discovered from calendar should be cached
         oauth_settings -- a dictionary with settings for the OAuth 2.0 authentication with Google:
@@ -50,11 +50,13 @@ class ShiftCalendar:
         self.token = None
 
     def credentials_ok(self):
+        """Return True if stored OAuth credentials are present and valid, False otherwise."""
         if self.credentials is None or self.credentials.invalid == True:
             return False
         return True
 
     def setup_credentials(self):
+        """Run interactive OAuth 2.0 setup dance and return True on success, False otherwise."""
         flow = OAuth2WebServerFlow(
                 client_id = self.oauth_settings['client_id'],
                 client_secret = self.oauth_settings['client_secret'],
@@ -65,6 +67,7 @@ class ShiftCalendar:
         return not self.credentials.invalid
 
     def get_token(self):
+        """Return a OAuth2Token that can be used with gdata client objects."""
         if self.credentials.access_token_expired:
             self.credentials._refresh(httplib2.Http().request)
             self.token = None # need a new token after refreshing
@@ -79,18 +82,21 @@ class ShiftCalendar:
         return self.token
 
     def get_contacts_client(self):
+        """Return an authenticated gdata.contacts.client.ContactsClient object."""
         client = gdata.contacts.client.ContactsClient(
                 source=self.oauth_settings['user_agent'])
         client.auth_token = self.get_token()
         return client
 
     def get_calendar_client(self):
+        """Return an authenticated gdata.calendar.client.CalendarClient object."""
         client = gdata.calendar.client.CalendarClient(
                 source=self.oauth_settings['user_agent'])
         client.auth_token = self.get_token()
         return client
 
     def sync(self):
+        """Download calendar and look up all contacts found in the calendar. Return number of shifts discovered on first run, True on subsequent runs."""
         if self.have_synced: # only sync once per instance
             return True
 
@@ -145,6 +151,7 @@ class ShiftCalendar:
         return len(self.shifts)
 
     def get_person(self, query):
+        """Given a text query, fetch and return a Person object. Caches results per query."""
         if query in self.people:
             person = self.people[query]
         else:
@@ -155,6 +162,7 @@ class ShiftCalendar:
         return person
 
     def get_current_shift(self):
+        """Return the Shift object that overlaps with now, i.e. is current. Will sync if we haven't already."""
         if not self.have_synced:
             self.sync()
         current_shift = None
@@ -172,6 +180,7 @@ class ShiftCalendar:
         return current_shift
 
     def get_current_person(self):
+        """Return the Person object associated with the Shift that is considered current. Will sync if haven't already."""
         if not self.have_synced:
             self.sync()
         current_shift = self.get_current_shift()
@@ -181,6 +190,9 @@ class ShiftCalendar:
         return self.get_person(current_shift.title)
 
     def get_calendar_feed(self):
+        """Return a raw calendar feed from Google Calendar.
+
+        This is used by initial setup to show choices for CALENDAR_URL."""
         client = self.get_calendar_client()
         return client.GetAllCalendarsFeed()
 
