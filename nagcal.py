@@ -206,10 +206,12 @@ class Shift:
         return repr((self.title, self.start, self.end))
 
     def dumps(self):
+        """Return a representation of this object as a string."""
         return "%s\t%s\t%s" % (self.start, self.end, self.title)
 
     @staticmethod
     def loads(string):
+        """Given a representation of this object as a string, initialize and return an instance of this object."""
         string = string.split("\t")
         return Shift(string[2], parse_date(string[0]), parse_date(string[1]))
 
@@ -230,6 +232,9 @@ class Person:
         return repr((self.query, self.email, self.phone))
 
     def update(self, client):
+        """Search for Person.query on Google Contacts and set email and phone number from first match.
+        
+        Will only sync once per instance."""
         if not self.have_synced:
             query = gdata.contacts.client.ContactsQuery()
             query.text_query = self.query
@@ -263,12 +268,14 @@ class Person:
             self.have_synced = True
 
     def dumps(self):
+        """Return a representation of this object as a string."""
         return "%s\t%s\t%s" % (self.query, self.email, self.phone)
 
     @staticmethod
     def loads(string):
+        """Given a representation of this object as a string, initialize and return an instance of this object."""
         string = string.split("\t")
-        return Shift(string[0], string[1], string[2])
+        return Person(string[0], string[1], string[2])
 
 class UTC(datetime.tzinfo):
     def utcoffset(self, _):
