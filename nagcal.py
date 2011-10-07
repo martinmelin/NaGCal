@@ -212,7 +212,7 @@ class Shift:
 
     @staticmethod
     def loads(string):
-        """Given a representation of this object as a string, initialize and return an instance of this object."""
+        """Given a representation of an object of this class as a string, initialize and return the object."""
         string = string.split("\t")
         return Shift(string[2], parse_date(string[0]), parse_date(string[1]))
 
@@ -275,7 +275,7 @@ class Person:
 
     @staticmethod
     def loads(string):
-        """Given a representation of this object as a string, initialize and return an instance of this object."""
+        """Given a representation of an object of this class as a string, initialize and return the object."""
         string = string.split("\t")
         return Person(string[0], string[1], string[2])
 
