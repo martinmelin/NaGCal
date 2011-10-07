@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+"""A way to keep on-call schedules in Google Calendar and resolve email/phone number to current person on call from Google Contacts."""
 import os
 import sys
 import gflags
@@ -19,11 +21,25 @@ from oauth2client.file import Storage
 from oauth2client.client import OAuth2WebServerFlow
 
 class ShiftCalendar:
+    """ShiftCalendar interfaces with Google Data APIs to sync one calendar and multiple contacts."""
     def __init__(self, calendar_url, calendar_file, contacts_file, oauth_settings):
+        """Initialize a new ShiftCalendar
+
+        Arguments:
+        calendar_url -- URL to the Google Calendar to work with.
+        calendar_file -- path to file where calendar contents should be cached
+        contacts_file -- path to file where contacts discovered from calendar should be cached
+        oauth_settings -- a dictionary with settings for the OAuth 2.0 authentication with Google:
+            'credentials_file': path to file where OAuth credentials should be stored after authentication
+            'user_agent': what User-Agent to present to Google
+            'display_name': what name Google should use to identify this script
+            'client_id': app ID from Google's API Console
+            'client_secret': app secret from Google's API console
+        """
         self.storage = Storage(oauth_settings['credentials_file'])
         self.credentials = self.storage.get()
         gflags.FLAGS.auth_local_webserver = False
-
+        oauth_settings['scope'] = "https://www.google.com/calendar/feeds/ https://www.google.com/m8/feeds"
         self.calendar_url = calendar_url
         self.calendar_file = calendar_file
         self.contacts_file = contacts_file
