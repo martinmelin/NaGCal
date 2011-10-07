@@ -176,6 +176,7 @@ class ShiftCalendar:
             self.sync()
         current_shift = self.get_current_shift()
         if current_shift is None:
+            # TODO: log error, this is pretty fatal
             return None
         return self.get_person(current_shift.title)
 
