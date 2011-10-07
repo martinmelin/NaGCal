@@ -23,6 +23,8 @@ from oauth2client.client import OAuth2WebServerFlow
 
 class ShiftCalendar:
     """ShiftCalendar interfaces with Google Data APIs to sync one calendar and multiple contacts."""
+    default_scope = "https://www.google.com/calendar/feeds/ https://www.google.com/m8/feeds"
+
     def __init__(self, calendar_url, calendar_file, contacts_file, oauth_settings):
         """Initialize a new ShiftCalendar
 
@@ -36,11 +38,11 @@ class ShiftCalendar:
             'display_name': what name Google should use to identify this script
             'client_id': app ID from Google's API Console
             'client_secret': app secret from Google's API console
+            'scope': (optional) scope for which to request access from Google
         """
-        self.storage = Storage(oauth_settings['credentials_file'])
-        self.credentials = self.storage.get()
-        gflags.FLAGS.auth_local_webserver = False
-        oauth_settings['scope'] = "https://www.google.com/calendar/feeds/ https://www.google.com/m8/feeds"
+        self.credentials = Storage(oauth_settings['credentials_file']).get()
+        if 'scope' not in oauth_settings:
+            oauth_settings['scope'] = ShiftCalendar.default_scope
         self.calendar_url = calendar_url
         self.calendar_file = calendar_file
         self.contacts_file = contacts_file
@@ -58,13 +60,15 @@ class ShiftCalendar:
 
     def setup_credentials(self):
         """Run interactive OAuth 2.0 setup dance and return True on success, False otherwise."""
+        gflags.FLAGS.auth_local_webserver = False
+        storage = Storage(self.oauth_settings['credentials_file'])
         flow = OAuth2WebServerFlow(
                 client_id = self.oauth_settings['client_id'],
                 client_secret = self.oauth_settings['client_secret'],
                 scope = self.oauth_settings['scope'],
                 user_agent = self.oauth_settings['user_agent'],
                 xoauth_displayname = self.oauth_settings['display_name'])
-        self.credentials = oauth2client.tools.run(flow, self.storage)
+        self.credentials = oauth2client.tools.run(flow, storage)
         return not self.credentials.invalid
 
     def get_token(self):
@@ -97,7 +101,10 @@ class ShiftCalendar:
         return client
 
     def sync(self):
-        """Download calendar and look up all contacts found in the calendar. Return number of shifts discovered on first run, True on subsequent runs."""
+        """Download calendar and look up all contacts found in the calendar.
+
+        Returns:
+            number of shifts discovered on first run, True on subsequent runs."""
         if self.have_synced: # only sync once per instance
             return True
 
@@ -178,7 +185,7 @@ class ShiftCalendar:
             current_shift = shift
             break
         if current_shift is None:
-            logging.error("Was unable to find a shift that overlaps with %s" % now)
+            logging.error("Was unable to find a shift that overlaps with %s", now)
         return current_shift
 
     def get_current_person(self):
@@ -248,9 +255,9 @@ class Person:
                 entry = feed.entry[0]
             elif len(feed.entry) > 1:
                 entry = feed.entry[0]
-                logging.warning("Calendar title '%s' is too broad, matches %d contacts." % (self.query, len(feed.entry)))
+                logging.warning("Calendar title '%s' is too broad, matches %d contacts.", self.query, len(feed.entry))
             if entry is None:
-                logging.error("Current shift does not match any contact! Query was: '%s'" % self.query)
+                logging.error("Current shift does not match any contact! Query was: '%s'", self.query)
                 sys.exit(os.EX_DATAERR)
             person = {'email': None, 'phone': None}
             for email in entry.email:
