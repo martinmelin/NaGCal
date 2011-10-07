@@ -294,7 +294,7 @@ if __name__ == "__main__":
     EMAIL = 0
     PHONE = 1
     SYNC = 2
-    CURRENT = 4
+    CURRENT = 3
 
     usage = "usage: %prog [options]"
     parser = OptionParser(usage=usage)
