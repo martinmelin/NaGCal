@@ -3,6 +3,7 @@
 import os
 import sys
 import gflags
+import logging
 import httplib2
 import datetime
 import settings
@@ -128,9 +129,10 @@ class ShiftCalendar:
         except:
             use_cache = True
 
-        if use_cache: # TODO: should log this as an error
+        if use_cache:
             self.shifts = cached_shifts
             self.people = cached_people
+            logging.error("Using cached data because of an exception when trying to sync with Google!")
         else: # we have synced successfully, so cache to disk
             # sort shifts according to start date (feed order not guaranteed)
             self.shifts = sorted(shifts, key=attrgetter('start'))
@@ -176,7 +178,7 @@ class ShiftCalendar:
             current_shift = shift
             break
         if current_shift is None:
-            pass # TODO: log warning when no current shift was found
+            logging.error("Was unable to find a shift that overlaps with %s" % now)
         return current_shift
 
     def get_current_person(self):
@@ -185,7 +187,7 @@ class ShiftCalendar:
             self.sync()
         current_shift = self.get_current_shift()
         if current_shift is None:
-            # TODO: log error, this is pretty fatal
+            logging.error("Was asked for on call person's details, but found no current shift!")
             return None
         return self.get_person(current_shift.title)
 
@@ -246,11 +248,10 @@ class Person:
                 entry = feed.entry[0]
             elif len(feed.entry) > 1:
                 entry = feed.entry[0]
-                # TODO: log warning that calendar titles are too broad
+                logging.warning("Calendar title '%s' is too broad, matches %d contacts." % (self.query, len(feed.entry)))
             if entry is None:
-                print "Fatal error: current shift does not match any person in contacts! Query was: '%s'" % self.query
+                logging.error("Current shift does not match any contact! Query was: '%s'" % self.query)
                 sys.exit(os.EX_DATAERR)
-                # TODO: handle this better
             person = {'email': None, 'phone': None}
             for email in entry.email:
                 if email.primary and email.primary == 'true':
@@ -313,6 +314,8 @@ if __name__ == "__main__":
     if options.action is None:
         parser.print_help()
         sys.exit(os.EX_USAGE)
+
+    logging.basicConfig(format='%(levelname)s %(asctime)s %(message)s')
 
     shift_calendar = ShiftCalendar(
             settings.GOOGLE_CALENDAR_URL,
