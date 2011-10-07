@@ -175,6 +175,8 @@ class ShiftCalendar:
         if not self.have_synced:
             self.sync()
         current_shift = self.get_current_shift()
+        if current_shift is None:
+            return None
         return self.get_person(current_shift.title)
 
     def get_calendar_feed(self):
@@ -326,6 +328,9 @@ if __name__ == "__main__":
 
     if options.action == CURRENT:
         current_person = shift_calendar.get_current_person()
+        if current_person is None:
+            print >> sys.stderr, "Error: There is no current person!"
+            sys.exit(os.EX_DATAERR)
         if options.value == EMAIL:
             print current_person.email
         elif options.value == PHONE:
