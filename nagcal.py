@@ -197,6 +197,7 @@ class ShiftCalendar:
         return client.GetAllCalendarsFeed()
 
 class Shift:
+    """Represents a single shift with a start and end time."""
     def __init__(self, title, start, end):
         self.title = title
         self.start = start
@@ -216,6 +217,7 @@ class Shift:
         return Shift(string[2], parse_date(string[0]), parse_date(string[1]))
 
 class Person:
+    """Represents a person that can be responsible for multiple Shifts."""
     def __init__(self, query, email = None, phone = None):
         self.query = query
         if email == "None":
@@ -278,6 +280,7 @@ class Person:
         return Person(string[0], string[1], string[2])
 
 class UTC(datetime.tzinfo):
+    """Class representing the UTC "timezone". Necessary to work with timezone-aware datetime objects."""
     def utcoffset(self, _):
         return datetime.timedelta(0)
 
