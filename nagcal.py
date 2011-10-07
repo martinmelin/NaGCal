@@ -308,14 +308,21 @@ if __name__ == "__main__":
     parser.add_option("-p", "--phone", action="store_const", const=PHONE,
             dest="value", help="echo current shift's phone number")
     parser.add_option("-v", "--verbose", action="store_true",
-            dest="verbose", help="Make script a bit more talkative")
+            dest="verbose", help="make script a bit more talkative")
+    parser.add_option("-o", "--stdout", action="store_true", default=False,
+            dest="stdout", help="log to STDOUT instead of log file in settings")
     (options, args) = parser.parse_args(sys.argv)
 
     if options.action is None:
         parser.print_help()
         sys.exit(os.EX_USAGE)
 
-    logging.basicConfig(format='%(levelname)s %(asctime)s %(message)s')
+    if options.stdout:
+        logging.basicConfig(format='%(levelname)s %(message)s')
+    else:
+        logging.basicConfig(
+                filename=settings.LOG_FILE,
+                format='%(levelname)s %(asctime)s %(message)s')
 
     shift_calendar = ShiftCalendar(
             settings.GOOGLE_CALENDAR_URL,

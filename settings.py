@@ -2,6 +2,7 @@ GOOGLE_CALENDAR_URL = "https://www.google.com/calendar/feeds/martinmelin.se_bn9l
 CALENDAR_FILE = "calendar.dat"
 CONTACTS_FILE = "contacts.dat"
 CREDENTIALS_FILE = "google.dat"
+LOG_FILE = "log.log"
 
 OAUTH_SETTINGS = {
         'credentials_file': CREDENTIALS_FILE,
