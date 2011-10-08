@@ -53,7 +53,8 @@ class ShiftCalendar:
 
     def credentials_ok(self):
         """Return True if stored OAuth credentials are present and valid, False otherwise."""
-        if self.oauth['credentials'] is None or self.oauth['credentials'].invalid == True:
+        if self.oauth['credentials'] is None or \
+                self.oauth['credentials'].invalid == True:
             return False
         return True
 
@@ -138,7 +139,7 @@ class ShiftCalendar:
         if use_cache:
             self.shifts = cached_shifts
             self.people = cached_people
-            logging.error("Using cached data because of an exception when trying to sync with Google!")
+            logging.error("Using cached data due to sync exception!")
         else: # we have synced successfully, so cache to disk
             # sort shifts according to start date (feed order not guaranteed)
             self.shifts = sorted(shifts, key=attrgetter('start'))
@@ -184,7 +185,7 @@ class ShiftCalendar:
             current_shift = shift
             break
         if current_shift is None:
-            logging.error("Was unable to find a shift that overlaps with %s", now)
+            logging.error("Was unable to find a shift overlapping with %s", now)
         return current_shift
 
     def get_last_shift(self):
@@ -203,7 +204,7 @@ class ShiftCalendar:
             self.sync()
         current_shift = self.get_current_shift()
         if current_shift is None:
-            logging.error("Was asked for on call person's details, but found no current shift!")
+            logging.error("Asked for on call person, but no current shift!")
             return None
         return self.get_person(current_shift.title)
 
@@ -320,7 +321,7 @@ if __name__ == "__main__":
     parser.add_option("-c", "--current", action="store_const", const=CURRENT,
             dest="action", help="use with --email or --phone")
     parser.add_option("-l", "--last-shift", action="store_const", const=LAST,
-            dest="action", help="echo number of days until end of last shift in calendar")
+            dest="action", help="echo no. of days until last known shift's end")
     parser.add_option("-e", "--email", action="store_const", const=EMAIL,
             dest="value", help="echo current shift's email")
     parser.add_option("-p", "--phone", action="store_const", const=PHONE,
