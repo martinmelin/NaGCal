@@ -40,63 +40,62 @@ class ShiftCalendar:
             'client_secret': app secret from Google's API console
             'scope': (optional) scope for which to request access from Google
         """
-        self.credentials = Storage(oauth_settings['credentials_file']).get()
+        self.calendar_url = calendar_url
+        self.cache_files = { 'calendar': calendar_file, 'contacts': contacts_file }
         if 'scope' not in oauth_settings:
             oauth_settings['scope'] = ShiftCalendar.default_scope
-        self.calendar_url = calendar_url
-        self.calendar_file = calendar_file
-        self.contacts_file = contacts_file
-        self.oauth_settings = oauth_settings
+        self.oauth = oauth_settings
+        self.oauth['token'] = None
+        self.oauth['credentials'] = Storage(oauth_settings['credentials_file']).get()
         self.have_synced = False
         self.shifts = None
         self.people = {}
-        self.token = None
 
     def credentials_ok(self):
         """Return True if stored OAuth credentials are present and valid, False otherwise."""
-        if self.credentials is None or self.credentials.invalid == True:
+        if self.oauth['credentials'] is None or self.oauth['credentials'].invalid == True:
             return False
         return True
 
     def setup_credentials(self):
         """Run interactive OAuth 2.0 setup dance and return True on success, False otherwise."""
         gflags.FLAGS.auth_local_webserver = False
-        storage = Storage(self.oauth_settings['credentials_file'])
+        storage = Storage(self.oauth['credentials_file'])
         flow = OAuth2WebServerFlow(
-                client_id = self.oauth_settings['client_id'],
-                client_secret = self.oauth_settings['client_secret'],
-                scope = self.oauth_settings['scope'],
-                user_agent = self.oauth_settings['user_agent'],
-                xoauth_displayname = self.oauth_settings['display_name'])
-        self.credentials = oauth2client.tools.run(flow, storage)
-        return not self.credentials.invalid
+                client_id = self.oauth['client_id'],
+                client_secret = self.oauth['client_secret'],
+                scope = self.oauth['scope'],
+                user_agent = self.oauth['user_agent'],
+                xoauth_displayname = self.oauth['display_name'])
+        self.oauth['credentials'] = oauth2client.tools.run(flow, storage)
+        return not self.oauth['credentials'].invalid
 
     def get_token(self):
         """Return a OAuth2Token that can be used with gdata client objects."""
-        if self.credentials.access_token_expired:
-            self.credentials._refresh(httplib2.Http().request)
-            self.token = None # need a new token after refreshing
-        if self.token is None:
-            self.token = gdata.gauth.OAuth2Token(
-                    self.oauth_settings['client_id'],
-                    self.oauth_settings['client_secret'],
-                    self.oauth_settings['scope'],
-                    self.oauth_settings['user_agent'],
-                    access_token = self.credentials.access_token,
-                    refresh_token = self.credentials.refresh_token)
-        return self.token
+        if self.oauth['credentials'].access_token_expired:
+            self.oauth['credentials']._refresh(httplib2.Http().request)
+            self.oauth['token'] = None # need a new token after refreshing
+        if self.oauth['token'] is None:
+            self.oauth['token'] = gdata.gauth.OAuth2Token(
+                    self.oauth['client_id'],
+                    self.oauth['client_secret'],
+                    self.oauth['scope'],
+                    self.oauth['user_agent'],
+                    access_token = self.oauth['credentials'].access_token,
+                    refresh_token = self.oauth['credentials'].refresh_token)
+        return self.oauth['token']
 
     def get_contacts_client(self):
         """Return an authenticated gdata.contacts.client.ContactsClient object."""
         client = gdata.contacts.client.ContactsClient(
-                source=self.oauth_settings['user_agent'])
+                source=self.oauth['user_agent'])
         client.auth_token = self.get_token()
         return client
 
     def get_calendar_client(self):
         """Return an authenticated gdata.calendar.client.CalendarClient object."""
         client = gdata.calendar.client.CalendarClient(
-                source=self.oauth_settings['user_agent'])
+                source=self.oauth['user_agent'])
         client.auth_token = self.get_token()
         return client
 
@@ -109,12 +108,12 @@ class ShiftCalendar:
             return True
 
         use_cache = False
-        calendar_file = open(self.calendar_file, 'r')
+        calendar_file = open(self.cache_files['calendar'], 'r')
         cached_shifts = []
         for line in calendar_file:
             cached_shifts.append(Shift.loads(line))
 
-        contacts_file = open(self.contacts_file, 'r')
+        contacts_file = open(self.cache_files['contacts'], 'r')
         cached_people = []
         for line in contacts_file:
             cached_people.append(Person.loads(line))
@@ -145,13 +144,13 @@ class ShiftCalendar:
             self.shifts = sorted(shifts, key=attrgetter('start'))
 
             # persist synced calendar to disk cache
-            calendar_file = open(self.calendar_file, 'w')
+            calendar_file = open(self.cache_files['calendar'], 'w')
             for shift in self.shifts:
                 calendar_file.write("%s\n" % (shift.dumps()))
             calendar_file.close()
 
             # persist synced contacts to disk cache
-            contacts_file = open(self.contacts_file , 'w')
+            contacts_file = open(self.cache_files['contacts'], 'w')
             for person in self.people.values():
                 contacts_file.write("%s\n" % (person.dumps()))
             contacts_file.close()
@@ -397,7 +396,7 @@ if __name__ == "__main__":
         time_left = last_known_shift.end - current_time
         print time_left.days
         if options.verbose:
-            last_person = Person(last_shift.title)
+            last_person = Person(last_known_shift.title)
             last_person.update(shift_calendar.get_contacts_client())
             print "Person: %s" % last_person.query
             print "E-mail: %s" % last_person.email
