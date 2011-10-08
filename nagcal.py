@@ -344,7 +344,7 @@ if __name__ == "__main__":
     else:
         logging.basicConfig(
                 filename=settings.LOG_FILE,
-                format='%(levelname)s %(asctime)s %(message)s')
+                format='%(asctime)s %(levelname)s %(message)s')
 
     shift_calendar = ShiftCalendar(
             settings.GOOGLE_CALENDAR_URL,
