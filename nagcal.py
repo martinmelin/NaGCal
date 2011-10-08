@@ -133,8 +133,11 @@ class ShiftCalendar:
                 # download contact info the first time we see this title,
                 # otherwise person will be grabbed from self.people
                 self.get_person(event.title.text)
-        except:
+        except Exception as exc: # pylint: disable=W0703
+            # We don't really care what happened, we just know we can't trust
+            # whatever we managed to sync from Google.
             use_cache = True
+            logging.error("Exception when syncing: %s", exc)
 
         if use_cache:
             self.shifts = cached_shifts
