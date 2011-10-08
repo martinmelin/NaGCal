@@ -278,10 +278,9 @@ class Person:
                 # rel example: http://schemas.google.com/g/2005#mobile
                 rel = phone.rel.split("#").pop()
                 phone_numbers[rel] = phone.text
-            if 'mobile' in phone_numbers: # TODO: this should be configurable
-                person['phone'] = phone_numbers['mobile']
-            elif 'work' in phone_numbers:
-                person['phone'] = phone_numbers['work']
+            for rel in settings.PHONE_TYPE_PREFERENCE:
+                if rel in phone_numbers:
+                    person['phone'] = phone_numbers[rel]
 
             self.email = person['email']
             self.phone = person['phone']

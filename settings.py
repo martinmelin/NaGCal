@@ -4,6 +4,9 @@ CONTACTS_FILE = "contacts.dat"
 CREDENTIALS_FILE = "google.dat"
 LOG_FILE = "log.log"
 
+# Use phone numbers of this type (in order of preference)
+PHONE_TYPE_PREFERENCE = ["mobile", "work"]
+
 OAUTH_SETTINGS = {
         'credentials_file': CREDENTIALS_FILE,
         'user_agent': "nagcal/dev",
