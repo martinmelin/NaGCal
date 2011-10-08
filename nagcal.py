@@ -392,9 +392,9 @@ if __name__ == "__main__":
             sys.exit(os.EX_USAGE)
 
     if options.action == LAST:
-        last_shift = shift_calendar.get_last_shift()
-        now = datetime.datetime.now(UTC())
-        time_left = last_shift.end - now
+        last_known_shift = shift_calendar.get_last_shift()
+        current_time = datetime.datetime.now(UTC())
+        time_left = last_known_shift.end - current_time
         print time_left.days
         if options.verbose:
             last_person = Person(last_shift.title)
