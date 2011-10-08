@@ -21,8 +21,9 @@ from oauth2client.client import OAuth2WebServerFlow
 class ShiftCalendar:
     """ShiftCalendar interfaces with Google Data APIs to sync one calendar and multiple contacts."""
     default_scope = "https://www.google.com/calendar/feeds/ https://www.google.com/m8/feeds"
+    default_phone_type_preference = ["mobile", "work"]
 
-    def __init__(self, calendar_url, calendar_file, contacts_file, oauth_settings):
+    def __init__(self, calendar_url, calendar_file, contacts_file, oauth_settings, **kwargs):
         """Initialize a new ShiftCalendar
 
         Arguments:
@@ -41,6 +42,10 @@ class ShiftCalendar:
         self.cache_files = { 'calendar': calendar_file, 'contacts': contacts_file }
         if 'scope' not in oauth_settings:
             oauth_settings['scope'] = ShiftCalendar.default_scope
+        if 'phone_type_preference' not in kwargs:
+            self.phone_type_preference = ShiftCalendar.default_phone_type_preference
+        else:
+            self.phone_type_preference = kwargs['phone_type_preference']
         self.oauth = oauth_settings
         self.oauth['token'] = None
         self.oauth['credentials'] = Storage(oauth_settings['credentials_file']).get()
@@ -278,7 +283,7 @@ class Person:
                 # rel example: http://schemas.google.com/g/2005#mobile
                 rel = phone.rel.split("#").pop()
                 phone_numbers[rel] = phone.text
-            for rel in settings.PHONE_TYPE_PREFERENCE:
+            for rel in self.phone_type_preference:
                 if rel in phone_numbers:
                     person['phone'] = phone_numbers[rel]
 

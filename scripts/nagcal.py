@@ -1,9 +1,11 @@
 #!/usr/bin/env python
+CONFIGURATION_FILE = "nagcal.cfg"
+
 import os
 import sys
 import logging
 import datetime
-import settings
+import ConfigParser
 from nagcal import ShiftCalendar, UTC
 from optparse import OptionParser
 
@@ -13,6 +15,9 @@ if __name__ == "__main__":
     SYNC = 2
     CURRENT = 3
     LAST = 4
+
+    config = ConfigParser.ConfigParser()
+    config.read(CONFIGURATION_FILE)
 
     usage = "usage: %prog [options]"
     parser = OptionParser(usage=usage)
@@ -40,29 +45,40 @@ if __name__ == "__main__":
         logging.basicConfig(format='%(levelname)s %(message)s')
     else:
         logging.basicConfig(
-                filename=settings.LOG_FILE,
+                filename=config.get('nagcal', 'log_file'),
                 format='%(asctime)s %(levelname)s %(message)s')
 
+
+    oauth_settings = {
+            'credentials_file': config.get('nagcal', 'credentials_file'),
+            'user_agent': config.get('oauth', 'user_agent'),
+            'display_name': config.get('oauth', 'display_name'),
+            'client_id': config.get('oauth', 'client_id'),
+            'client_secret': config.get('oauth', 'client_secret'),
+            }
+
     shift_calendar = ShiftCalendar(
-            settings.GOOGLE_CALENDAR_URL,
-            settings.CALENDAR_FILE,
-            settings.CONTACTS_FILE,
-            settings.OAUTH_SETTINGS)
+            config.get('nagcal', 'calendar_url'),
+            config.get('nagcal', 'calendar_file'),
+            config.get('nagcal', 'contacts_file'),
+            oauth_settings,
+            phone_type_preference = config.get('nagcal', 'phone_types'))
 
     if options.action != SYNC and not shift_calendar.credentials_ok():
         print >> sys.stderr, "Bad credentials, run --sync for initial setup!"
         sys.exit(os.EX_CONFIG)
 
     if options.action == SYNC:
+        GOOGLE_CALENDAR_URL = config.get('nagcal', 'calendar_url')
         if not shift_calendar.credentials_ok():
             success = shift_calendar.setup_credentials()
             if not success:
                 print >> sys.stderr, "OAuth setup failed, check settings!"
                 sys.exit(os.EX_CONFIG)
-        if settings.GOOGLE_CALENDAR_URL is None or \
-                len(settings.GOOGLE_CALENDAR_URL) == 0:
+        if GOOGLE_CALENDAR_URL is None or \
+                len(GOOGLE_CALENDAR_URL) == 0:
             print "No calendar URL configured! " + \
-                    "Please set settings.GOOGLE_CALENDAR_URL to " + \
+                    "Please set calendar_url to " + \
                     "one of the URLs from the below list:\n"
             calendars = []
             calendar_feed = shift_calendar.get_calendar_feed()
@@ -71,12 +87,12 @@ if __name__ == "__main__":
                         calendar.title.text,
                         "-" * len(calendar.title.text),
                         calendar.content.src)
-            print >> sys.stderr, "settings.GOOGLE_CALENDAR_URL is not set!"
+            print >> sys.stderr, "calendar_url is not set!"
             sys.exit(os.EX_CONFIG)
         count = shift_calendar.sync()
         if options.verbose:
-            print "Wrote %s shifts to %s" % (count, settings.CALENDAR_FILE)
-            print "Discovered contacts written to %s" % settings.CONTACTS_FILE
+            print "Wrote %s shifts to %s" % (count, config.get('nagcal', 'calendar_file'))
+            print "Discovered contacts written to %s" % config.get('nagcal', 'contacts_file')
 
     if options.action == CURRENT:
         current_person = shift_calendar.get_current_person()
