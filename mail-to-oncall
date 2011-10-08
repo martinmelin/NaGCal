@@ -1,0 +1,52 @@
+#!/bin/bash
+# This is a wrapper for the /bin/mail program that will try to get the current
+# on call person's email address from NaGCal.
+#
+# If successful, it will tell /bin/mail to send to that address.
+#
+# If NaGCal exits with a non-zero exit code however, /bin/mail will be told
+# to send to the fallback address provided as an argument to this script.
+#
+MAIL_PATH=/usr/bin/mail
+NAGCAL_PATH=/Volumes/Projects/nagcal/nagcal.py
+
+NO_ARGS=0
+E_OPTERROR=85
+USAGE_MSG="Usage: `basename $0` -s \"Subject\" fallback.email@example.com"
+
+if [ $# -eq "$NO_ARGS" ]    # Script invoked with no command-line args?
+then
+  echo $USAGE_MSG
+  exit $E_OPTERROR
+fi
+
+while getopts "s:" Option
+do
+  case $Option in
+    s     ) SUBJECT=$OPTARG;;
+    *     ) echo "Unimplemented option."; echo $USAGE_MSG; exit $E_OPTERROR;;
+  esac
+done
+
+shift $(($OPTIND - 1))
+
+if [ $# -eq "$NO_ARGS" ] # No argument left after options?
+then
+    echo "You must specify a fallback e-mail address!"
+    echo $USAGE_MSG
+    exit $E_OPTERROR
+fi
+
+FALLBACK=$1
+ONCALL=$($NAGCAL_PATH --current --email)
+ONCALL_EXIT=$?
+
+if [ $ONCALL_EXIT == 0 ]
+then
+    EMAIL=$ONCALL
+else
+    EMAIL=$FALLBACK
+fi
+
+$MAIL_PATH -s "$SUBJECT" $EMAIL
+exit $?
