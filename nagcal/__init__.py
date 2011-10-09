@@ -40,6 +40,14 @@ class ShiftCalendar:
         """
         self.calendar_url = calendar_url
         self.cache_files = { 'calendar': calendar_file, 'contacts': contacts_file }
+        # make sure cache files are present and at least readable
+        for file in self.cache_files.values():
+            try:
+                f = open(file, 'r')
+            except IOError:
+                f = open(file, 'w')
+            finally:
+                f.close()
         if 'scope' not in oauth_settings:
             oauth_settings['scope'] = ShiftCalendar.default_scope
         if 'phone_type_preference' not in kwargs:
