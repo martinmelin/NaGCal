@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-CONFIGURATION_FILE = "/etc/nagcal/nagcal.cfg"
+CONFIGURATION_FILE = "/usr/local/nagios/etc/nagcal.cfg"
 
 import os
 import sys

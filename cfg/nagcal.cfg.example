@@ -1,9 +1,9 @@
 [nagcal]
 calendar_url = 
-calendar_file = /var/cache/nagcal/calendar
-contacts_file = /var/cache/nagcal/contacts
-credentials_file = /etc/nagcal/credentials
-log_file = /var/log/nagcal.log
+calendar_file = /usr/local/nagios/var/nagcal.calendar.cache
+contacts_file = /usr/local/nagios/var/nagcal.contacts.cache
+credentials_file = /usr/local/nagios/etc/nagcal.credentials
+log_file = /usr/local/nagios/var/nagcal.log
 phone_types = mobile,work
 [oauth]
 user_agent = NaGCal
