@@ -15,9 +15,9 @@ setup(name='NaGCal',
         data_files=[('config', ['cfg/nagcal.cfg'])],
         install_requires=[
             'gdata',
-            'gflags',
             'iso8601',
             'httplib2',
             'oauth2client',
+            'python-gflags',
             ],
         )
