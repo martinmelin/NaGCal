@@ -1,4 +1,5 @@
 [nagcal]
+# NB! run nagcal --sync with calendar_url empty to see a list of possible URLs
 calendar_url = 
 calendar_file = /usr/local/nagios/var/nagcal.calendar.cache
 contacts_file = /usr/local/nagios/var/nagcal.contacts.cache
@@ -8,5 +9,7 @@ phone_types = mobile,work
 [oauth]
 user_agent = NaGCal
 display_name = NaGCal (Nagios On Call Calendar)
+# You can use your own values here, but there's no need.
+# Without your credentials file it's impossible to access your data.
 client_id = 648533157291.apps.googleusercontent.com
 client_secret = 2J_3dxA-dU5lYeRXibb29MXo
