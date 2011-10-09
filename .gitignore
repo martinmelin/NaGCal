@@ -4,3 +4,7 @@
 bin/buildout
 eggs/
 develop-eggs/
+build/
+*.egg
+*.tar.gz
+*.egg-info
