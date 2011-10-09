@@ -1,0 +1,12 @@
+[nagcal]
+calendar_url = 
+calendar_file = /var/cache/nagcal/calendar
+contacts_file = /var/cache/nagcal/contacts
+credentials_file = /etc/nagcal/credentials
+log_file = /var/log/nagcal.log
+phone_types = mobile,work
+[oauth]
+user_agent = NaGCal
+display_name = NaGCal (Nagios On Call Calendar)
+client_id = 648533157291.apps.googleusercontent.com
+client_secret = 2J_3dxA-dU5lYeRXibb29MXo
