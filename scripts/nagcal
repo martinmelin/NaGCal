@@ -38,9 +38,8 @@ if __name__ == "__main__":
 
     config = ConfigParser.ConfigParser()
     if options.config_file is not None:
-        config.read(options.config_file)
-    else:
-        config.read(CONFIGURATION_FILE)
+        CONFIGURATION_FILE = options.config_file
+    config.read(CONFIGURATION_FILE)
 
     if options.action is None:
         parser.print_help()
@@ -83,7 +82,7 @@ if __name__ == "__main__":
         if GOOGLE_CALENDAR_URL is None or \
                 len(GOOGLE_CALENDAR_URL) == 0:
             print "No calendar URL configured! " + \
-                    "Please set calendar_url to " + \
+                    "Please set calendar_url in %s to " % CONFIGURATION_FILE + \
                     "one of the URLs from the below list:\n"
             calendars = []
             calendar_feed = shift_calendar.get_calendar_feed()
