@@ -1,9 +1,11 @@
+# About
+
 NaGCal is a way to keep your on call schedule in Google Calendar and look up
 contact details to the person who is currently on call from Google Contacts.
 It was built for use with Nagios, the network monitoring system.
 
-HOW TO INSTALL
-==============
+# How to install
+
 It should be fairly easy to install NaGCal. These are the general steps:
 
 1. Download a release
@@ -17,8 +19,8 @@ with the exception that it sends email to the currently on call person if
 there is one. If there is noone on call or an error occurs, it sends mail
 to the address that was provided as an argument instead.
 
-DEPENDENCIES
-============
+## Dependencies
+
 NaGCal is written in Python and depends on a few other Python packages.
 Running python setup.py install should download and install these for you.
 
