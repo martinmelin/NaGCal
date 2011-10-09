@@ -16,9 +16,6 @@ if __name__ == "__main__":
     CURRENT = 3
     LAST = 4
 
-    config = ConfigParser.ConfigParser()
-    config.read(CONFIGURATION_FILE)
-
     usage = "usage: %prog [options]"
     parser = OptionParser(usage=usage)
     parser.add_option("-s", "--sync", action="store_const", const=SYNC,
@@ -35,7 +32,15 @@ if __name__ == "__main__":
             dest="stdout", help="redirect logging to stdout")
     parser.add_option("-v", "--verbose", action="store_true",
             dest="verbose", help="make script a bit more talkative")
+    parser.add_option("-f", "--config", action="store", type="string",
+            dest="config_file", help="path to alternative configuration file")
     (options, args) = parser.parse_args(sys.argv)
+
+    config = ConfigParser.ConfigParser()
+    if options.config_file is not None:
+        config.read(options.config_file)
+    else:
+        config.read(CONFIGURATION_FILE)
 
     if options.action is None:
         parser.print_help()
