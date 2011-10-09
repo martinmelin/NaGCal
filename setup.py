@@ -13,4 +13,11 @@ setup(name='NaGCal',
         packages=['nagcal'],
         scripts=['scripts/mail-to-oncall.sh', 'scripts/nagcal-bin.py'],
         data_files=[('config', ['cfg/nagcal.cfg'])],
+        install_requires=[
+            'gdata',
+            'gflags',
+            'iso8601',
+            'httplib2',
+            'oauth2client',
+            ],
         )
