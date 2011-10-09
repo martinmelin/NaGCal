@@ -11,7 +11,7 @@ setup(name='NaGCal',
         author='Martin Melin',
         author_email='nagcal@martinmelin.se',
         packages=['nagcal'],
-        scripts=['scripts/mail-to-oncall.sh', 'scripts/nagcal-bin.py'],
+        scripts=['scripts/mail-to-oncall', 'scripts/nagcal'],
         data_files=[('config', ['cfg/nagcal.cfg'])],
         install_requires=[
             'gdata',
