@@ -1,3 +1,6 @@
 *.dat
 *.pyc
 *.log
+bin/buildout
+eggs/
+develop-eggs/
