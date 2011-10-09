@@ -96,8 +96,13 @@ if __name__ == "__main__":
             sys.exit(os.EX_CONFIG)
         count = shift_calendar.sync()
         if options.verbose:
-            print "Wrote %s shifts to %s" % (count, config.get('nagcal', 'calendar_file'))
-            print "Discovered contacts written to %s" % config.get('nagcal', 'contacts_file')
+            if count == 0:
+                print "No shifts found - check log file for details."
+            else:
+                print "Wrote %s shifts to %s" % (count, config.get('nagcal', 'calendar_file'))
+                print "Discovered contacts written to %s" % config.get('nagcal', 'contacts_file')
+        if count == 0:
+            sys.exit(os.EX_DATAERR)
 
     if options.action == CURRENT:
         current_person = shift_calendar.get_current_person()
