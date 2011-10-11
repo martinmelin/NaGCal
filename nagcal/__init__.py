@@ -120,13 +120,13 @@ class ShiftCalendar:
             return True
 
         use_cache = False
-        calendar_file = open(self.cache_files['calendar'], 'r+')
+        calendar_file = open(self.cache_files['calendar'], 'r')
         cached_shifts = []
         for line in calendar_file:
             cached_shifts.append(Shift.loads(line))
         calendar_file.close()
 
-        contacts_file = open(self.cache_files['contacts'], 'r+')
+        contacts_file = open(self.cache_files['contacts'], 'r')
         cached_people = []
         for line in contacts_file:
             cached_people.append(Person.loads(line))
