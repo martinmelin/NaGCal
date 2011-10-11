@@ -1,6 +1,7 @@
 """A way to keep on-call schedules in Google Calendar and resolve email/phone number to current person on call from Google Contacts."""
 import os
 import sys
+import time
 import gflags
 import logging
 import httplib2
@@ -131,25 +132,35 @@ class ShiftCalendar:
             cached_people.append(Person.loads(line))
         contacts_file.close()
 
-        try:
-            client = self.get_calendar_client()
-            shifts = []
-            event_feed = client.GetCalendarEventFeed(uri=self.calendar_url)
-            for event in event_feed.entry:
-                shifts.append(
-                        Shift(
-                            event.title.text,
-                            parse_date(event.when[0].start),
-                            parse_date(event.when[0].end)
-                        ))
-                # download contact info the first time we see this title,
-                # otherwise person will be grabbed from self.people
-                self.get_person(event.title.text)
-        except Exception as exc: # pylint: disable=W0703
-            # We don't really care what happened, we just know we can't trust
-            # whatever we managed to sync from Google.
-            use_cache = True
-            logging.error("Exception when syncing: %s", exc)
+        for file in self.cache_files.values():
+            age = time.time() - os.path.getmtime(file)
+            if age < 60:
+                use_cache = True
+                logging.info(
+                        "using cache because %s was modified only %ds ago",
+                        file,
+                        age)
+
+        if not use_cache:
+            try:
+                client = self.get_calendar_client()
+                shifts = []
+                event_feed = client.GetCalendarEventFeed(uri=self.calendar_url)
+                for event in event_feed.entry:
+                    shifts.append(
+                            Shift(
+                                event.title.text,
+                                parse_date(event.when[0].start),
+                                parse_date(event.when[0].end)
+                            ))
+                    # download contact info the first time we see this title,
+                    # otherwise person will be grabbed from self.people
+                    self.get_person(event.title.text)
+            except Exception as exc: # pylint: disable=W0703
+                # We don't really care what happened, we just know we can't trust
+                # whatever we managed to sync from Google.
+                use_cache = True
+                logging.error("Exception when syncing: %s", exc)
 
         if use_cache:
             self.shifts = cached_shifts
