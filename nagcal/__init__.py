@@ -192,7 +192,7 @@ class ShiftCalendar:
         else:
             person = Person(query)
         client = self.get_contacts_client()
-        person.update(client)
+        person.update(client, self.phone_type_preference)
         self.people[query] = person
         return person
 
@@ -278,7 +278,7 @@ class Person:
     def __repr__(self):
         return repr((self.query, self.email, self.phone))
 
-    def update(self, client):
+    def update(self, client, phone_type_preference):
         """Search for Person.query on Google Contacts and set email and phone number from first match.
         
         Will only sync once per instance."""
@@ -304,7 +304,7 @@ class Person:
                 # rel example: http://schemas.google.com/g/2005#mobile
                 rel = phone.rel.split("#").pop()
                 phone_numbers[rel] = phone.text
-            for rel in self.phone_type_preference:
+            for rel in phone_type_preference:
                 if rel in phone_numbers:
                     person['phone'] = phone_numbers[rel]
 
