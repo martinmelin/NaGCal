@@ -136,7 +136,7 @@ class ShiftCalendar:
             age = time.time() - os.path.getmtime(file)
             if age < 60:
                 use_cache = True
-                logging.info(
+                logging.warning(
                         "using cache because %s was modified only %ds ago",
                         file,
                         age)
@@ -165,7 +165,6 @@ class ShiftCalendar:
         if use_cache:
             self.shifts = cached_shifts
             self.people = cached_people
-            logging.error("Using cached data due to sync exception!")
         else: # we have synced successfully, so cache to disk
             # sort shifts according to start date (feed order not guaranteed)
             self.shifts = sorted(shifts, key=attrgetter('start'))
