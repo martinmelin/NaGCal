@@ -127,19 +127,24 @@ class ShiftCalendar:
         calendar_file.close()
 
         contacts_file = open(self.cache_files['contacts'], 'r')
-        cached_people = []
+        cached_people = {}
         for line in contacts_file:
-            cached_people.append(Person.loads(line))
+            p = Person.loads(line)
+            cached_people[p.query] = p
         contacts_file.close()
 
         for file in self.cache_files.values():
-            age = time.time() - os.path.getmtime(file)
-            if age < 60:
-                use_cache = True
-                logging.warning(
-                        "using cache because %s was modified only %ds ago",
-                        file,
-                        age)
+            try:
+                age = time.time() - os.path.getmtime(file)
+                if age < 60 and len(cached_shifts) > 0:
+                    use_cache = True
+                    logging.warning(
+                            "using cache because %s was modified only %ds ago",
+                            file,
+                            age)
+            except IOError as exc:
+                use_cache = False
+                logging.warning("Won't use cache due to exception when reading: %s", exc)
 
         if not use_cache:
             try:
@@ -258,7 +263,7 @@ class Shift:
     def loads(string):
         """Given a representation of an object of this class as a string, initialize and return the object."""
         string = string.split("\t")
-        return Shift(string[2], parse_date(string[0]), parse_date(string[1]))
+        return Shift(string[2].strip(), parse_date(string[0]), parse_date(string[1]))
 
 class Person:
     """Represents a person that can be responsible for multiple Shifts."""
@@ -277,7 +282,7 @@ class Person:
     def __repr__(self):
         return repr((self.query, self.email, self.phone))
 
-    def update(self, client, phone_type_preference):
+    def update(self, client, phone_type_preference = ShiftCalendar.default_phone_type_preference):
         """Search for Person.query on Google Contacts and set email and phone number from first match.
         
         Will only sync once per instance."""
@@ -319,7 +324,7 @@ class Person:
     def loads(string):
         """Given a representation of an object of this class as a string, initialize and return the object."""
         string = string.split("\t")
-        return Person(string[0], string[1], string[2])
+        return Person(string[0].strip(), string[1].strip(), string[2].strip())
 
 class UTC(datetime.tzinfo):
     """Class representing the UTC "timezone". Necessary to work with timezone-aware datetime objects."""

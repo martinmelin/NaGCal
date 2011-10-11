@@ -6,7 +6,7 @@ import sys
 import logging
 import datetime
 import ConfigParser
-from nagcal import ShiftCalendar, UTC
+from nagcal import ShiftCalendar, UTC, Person
 from optparse import OptionParser
 
 if __name__ == "__main__":
@@ -66,7 +66,7 @@ if __name__ == "__main__":
             config.get('nagcal', 'calendar_file'),
             config.get('nagcal', 'contacts_file'),
             oauth_settings,
-            phone_type_preference = config.get('nagcal', 'phone_types'))
+            phone_type_preference = config.get('nagcal', 'phone_types').split(","))
 
     if options.action != SYNC and not shift_calendar.credentials_ok():
         print >> sys.stderr, "Bad credentials, run --sync for initial setup!"
