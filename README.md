@@ -11,7 +11,7 @@ It should be fairly easy to install NaGCal. These are the general steps:
 1. Download a release
 2. Run python setup.py install to download dependencies
 3. Copy the example configuration file to your config directory
-4. Run nagcal --sync to set up authentication tokens with Google's APIs
+4. Run nagcal --sync to set up a Google OAuth authentication token
 
 When this is done, you can use the provided mail-to-oncall script as a
 notification command in Nagios. It has been written to behave like /bin/mail,
@@ -29,3 +29,56 @@ Running python setup.py install should download and install these for you.
 - httplib2
 - oauth2client
 - python-gflags
+
+# Configuration
+
+For a reliable NaGCal installation, you need to configure three things:
+
+1. Your on-call Nagios contact notification command
+2. Nagios checks of the NaGCal log
+3. A crontab entry running nagcal --sync periodically
+
+## Notification command
+
+For each Nagios contact definition, you can provide a notification_command
+that is executed to notify that particular contact.
+
+You can use the default Nagios notification command, but instead of piping to
+/bin/mail you pipe to /usr/bin/mail-to-oncall.
+
+The mail-to-oncall script runs NaGCal to get the current on call email address.
+If NaGCal exits with a non-zero exit code, the script uses the email address
+that was provided on the command line instead ($CONTACTEMAIl in this case)
+
+Because of this it is very important that the email address set for your
+on-call Nagios contact is a working, monitored email address, preferably
+an alias that addresses your whole on call group. If anything goes wrong
+with NaGCal (either a bug or, more likely, a problem with your on call calendar)
+the fallback address will receive alerts.
+
+## Nagios checks of the NaGCal log
+
+Nagios does not handle notification command failures gracefully, which is why
+NaGCal uses a wrapper script to ensure that _someone_ always receives an email
+even if there is a problem with NaGCal itself.
+
+However, like any part of your environment, you should monitor NaGCal itself
+to quickly discover when something goes wrong.
+
+NaGCal logs WARNING and ERROR messages to whatever log_file is set to in nagcal.cfg.
+Use one of the many available Nagios plugins for checking log files to monitor
+this file for new entries.
+
+## Periodically syncing with cron
+
+NaGCal maintains a cache of calendar and contact data on disk, used only when either:
+
+1. less than 60 seconds have passed between invocations of NaGCal
+2. an exception occurs when connecting to Google (network problems for instance)
+
+You should add an entry to your Nagios crontab running nagcal --sync, which will
+update the on-disk cache with the latest calendar and contact data.
+
+This ensures that even if a week passes between Nagios alerts, you do not get
+week-old calendar data if whatever issue is to be alerted also affects connectivity
+to Google.
