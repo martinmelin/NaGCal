@@ -6,7 +6,7 @@ distribute_setup.use_setuptools()
 from setuptools import setup
 
 setup(name='NaGCal',
-        version='0.1.1',
+        version='0.1.2',
         description='On Call Schedules in Google Calendar for Nagios',
         author='Martin Melin',
         author_email='nagcal@martinmelin.se',
