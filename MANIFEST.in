@@ -1,3 +1,4 @@
+include README.md
 include distribute_setup.py
 include bootstrap.py
 include cfg/*

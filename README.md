@@ -30,6 +30,8 @@ Running python setup.py install should download and install these for you.
 - oauth2client
 - python-gflags
 
+If you do not have an Internet connection, you also need the distribute package.
+
 # Configuration
 
 For a reliable NaGCal installation, you need to configure three things:
