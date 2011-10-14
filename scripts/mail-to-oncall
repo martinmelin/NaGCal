@@ -7,8 +7,9 @@
 # If NaGCal exits with a non-zero exit code however, /bin/mail will be told
 # to send to the fallback address provided as an argument to this script.
 #
-MAIL_PATH=/usr/bin/mail
-NAGCAL_PATH=/Volumes/Projects/nagcal/nagcal.py
+NAGCAL_CONFIG=/usr/local/nagios/etc/nagcal.cfg
+NAGCAL_PATH=nagcal --config=$NAGCAL_CONFIG
+MAIL_PATH=mail
 
 NO_ARGS=0
 E_OPTERROR=85
