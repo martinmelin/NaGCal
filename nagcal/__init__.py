@@ -129,8 +129,8 @@ class ShiftCalendar:
         contacts_file = open(self.cache_files['contacts'], 'r')
         cached_people = {}
         for line in contacts_file:
-            p = Person.loads(line)
-            cached_people[p.query] = p
+            contact = Person.loads(line)
+            cached_people[contact.query] = contact
         contacts_file.close()
 
         for filename in self.cache_files.values():
