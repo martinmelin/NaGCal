@@ -42,13 +42,13 @@ class ShiftCalendar:
         self.calendar_url = calendar_url
         self.cache_files = { 'calendar': calendar_file, 'contacts': contacts_file }
         # make sure cache files are present and at least readable
-        for file in self.cache_files.values():
+        for filename in self.cache_files.values():
             try:
-                f = open(file, 'r')
+                cache_file = open(filename, 'r')
             except IOError:
-                f = open(file, 'w')
+                cache_file = open(filename, 'w')
             finally:
-                f.close()
+                cache_file.close()
         if 'scope' not in oauth_settings:
             oauth_settings['scope'] = ShiftCalendar.default_scope
         if 'phone_type_preference' not in kwargs:
@@ -133,14 +133,14 @@ class ShiftCalendar:
             cached_people[p.query] = p
         contacts_file.close()
 
-        for file in self.cache_files.values():
+        for filename in self.cache_files.values():
             try:
-                age = time.time() - os.path.getmtime(file)
+                age = time.time() - os.path.getmtime(filename)
                 if age < 60 and len(cached_shifts) > 0:
                     use_cache = True
                     logging.warning(
                             "using cache because %s was modified only %ds ago",
-                            file,
+                            filename,
                             age)
             except IOError as exc:
                 use_cache = False
