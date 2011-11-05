@@ -111,6 +111,15 @@ class ShiftCalendar:
         client.auth_token = self.get_token()
         return client
 
+    def cache_age(self):
+        """Returns age of oldest cache in seconds"""
+        oldest = 0
+        for filename in self.cache_files.values():
+            age = time.time() - os.path.getmtime(filename)
+            if age > oldest:
+                oldest = age
+        return oldest
+
     def sync(self):
         """Download calendar and look up all contacts found in the calendar.
 
@@ -120,31 +129,14 @@ class ShiftCalendar:
             return True
 
         use_cache = False
-        calendar_file = open(self.cache_files['calendar'], 'r')
-        cached_shifts = []
-        for line in calendar_file:
-            cached_shifts.append(Shift.loads(line))
-        calendar_file.close()
-
-        contacts_file = open(self.cache_files['contacts'], 'r')
-        cached_people = {}
-        for line in contacts_file:
-            contact = Person.loads(line)
-            cached_people[contact.query] = contact
-        contacts_file.close()
-
-        for filename in self.cache_files.values():
-            try:
-                age = time.time() - os.path.getmtime(filename)
-                if age < 60 and len(cached_shifts) > 0:
-                    use_cache = True
-                    logging.warning(
-                            "using cache because %s was modified only %ds ago",
-                            filename,
-                            age)
-            except IOError as exc:
-                use_cache = False
-                logging.warning("Won't use cache due to exception when reading: %s", exc)
+        try:
+            cache_age = self.cache_age()
+            if cache_age < 60:
+                use_cache = True
+                logging.warning("Using cache because cache was modified only %ds ago", age)
+        except IOError as exc:
+            use_cache = False
+            logging.warning("Won't use cache due to exception when reading: %s", exc)
 
         if not use_cache:
             try:
@@ -168,8 +160,16 @@ class ShiftCalendar:
                 logging.error("Exception when syncing: %s", exc)
 
         if use_cache:
-            self.shifts = cached_shifts
-            self.people = cached_people
+            calendar_file = open(self.cache_files['calendar'], 'r')
+            for line in calendar_file:
+                self.shifts.append(Shift.loads(line))
+            calendar_file.close()
+
+            contacts_file = open(self.cache_files['contacts'], 'r')
+            for line in contacts_file:
+                contact = Person.loads(line)
+                self.people[contact.query] = contact
+            contacts_file.close()
         else: # we have synced successfully, so cache to disk
             # sort shifts according to start date (feed order not guaranteed)
             self.shifts = sorted(shifts, key=attrgetter('start'))
