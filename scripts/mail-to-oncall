@@ -7,26 +7,28 @@
 # If NaGCal exits with a non-zero exit code however, /bin/mail will be told
 # to send to the fallback address provided as an argument to this script.
 #
-NAGCAL_CONFIG=/usr/local/nagios/etc/nagcal.cfg
-NAGCAL_PATH=nagcal --config=$NAGCAL_CONFIG
+NAGCAL_PATH=nagcal
 MAIL_PATH=mail
 
 NO_ARGS=0
 E_OPTERROR=85
-USAGE_MSG="Usage: `basename $0` -s \"Subject\" fallback.email@example.com"
+USAGE_MSG="Usage: `basename $0` -f /path/to/nagcal.cfg -s \"Subject\" fallback.email@example.com"
 
 if [ $# -eq "$NO_ARGS" ]    # Script invoked with no command-line args?
 then
     echo $USAGE_MSG; exit $E_OPTERROR
 fi
 
-while getopts "s:" Option
+while getopts "s:f:" Option
 do
     case $Option in
         s     ) SUBJECT=$OPTARG;;
+        f     ) NAGCAL_CONFIG=$OPTARG;;
         *     ) echo "Unimplemented option."; echo $USAGE_MSG; exit $E_OPTERROR;;
     esac
 done
+
+NAGCAL="$NAGCAL_PATH --config=$NAGCAL_CONFIG"
 
 shift $(($OPTIND - 1))
 
