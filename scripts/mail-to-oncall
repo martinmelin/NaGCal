@@ -9,21 +9,23 @@
 #
 NAGCAL_PATH=nagcal
 MAIL_PATH=mail
+CACHE_PATH=/tmp
 
 NO_ARGS=0
 E_OPTERROR=85
-USAGE_MSG="Usage: `basename $0` -f /path/to/nagcal.cfg -s \"Subject\" fallback.email@example.com"
+USAGE_MSG="Usage: `basename $0` -f /path/to/nagcal.cfg -w /tmp -s \"Subject\" fallback.email@example.com"
 
 if [ $# -eq "$NO_ARGS" ]    # Script invoked with no command-line args?
 then
     echo $USAGE_MSG; exit $E_OPTERROR
 fi
 
-while getopts "s:f:" Option
+while getopts "s:f:w:" Option
 do
     case $Option in
         s     ) SUBJECT=$OPTARG;;
         f     ) NAGCAL_CONFIG=$OPTARG;;
+        w     ) CACHE_PATH=$OPTARG;;
         *     ) echo "Unimplemented option."; echo $USAGE_MSG; exit $E_OPTERROR;;
     esac
 done
@@ -37,6 +39,14 @@ then
     echo "You must specify a fallback e-mail address!"
     echo $USAGE_MSG; exit $E_OPTERROR
 fi
+
+if [[ ( ! -d "$CACHE_PATH" ) || ( ! -w "$CACHE_PATH" ) ]]
+then
+	echo "Can't write to provided cache directory!"
+	echo $USAGE_MSG; exit $E_OPTERROR
+fi
+
+cd $CACHE_PATH # need to be in a directory writable by current user
 
 FALLBACK=$1
 ONCALL=$($NAGCAL_PATH --current --email)
