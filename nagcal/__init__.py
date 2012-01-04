@@ -133,7 +133,7 @@ class ShiftCalendar:
             cache_age = self.cache_age()
             if cache_age < 60:
                 use_cache = True
-                logging.warning("Using cache because cache was modified only %ds ago", age)
+                logging.warning("Using cache because cache was modified only %ds ago", cache_age)
         except IOError as exc:
             use_cache = False
             logging.warning("Won't use cache due to exception when reading: %s", exc)
