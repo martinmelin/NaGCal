@@ -49,7 +49,7 @@ fi
 cd $CACHE_PATH # need to be in a directory writable by current user
 
 FALLBACK=$1
-ONCALL=$($NAGCAL_PATH --current --email)
+ONCALL=$($NAGCAL --current --email)
 ONCALL_EXIT=$?
 
 if [ $ONCALL_EXIT == 0 ]
