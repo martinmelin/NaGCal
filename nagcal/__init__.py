@@ -161,7 +161,7 @@ class ShiftCalendar:
 
         if use_cache:
             calendar_file = open(self.cache_files['calendar'], 'r')
-			self.shifts = []
+            self.shifts = []
             for line in calendar_file:
                 self.shifts.append(Shift.loads(line))
             calendar_file.close()
