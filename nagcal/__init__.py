@@ -146,13 +146,13 @@ class ShiftCalendar:
                 for event in event_feed.entry:
                     shifts.append(
                             Shift(
-                                event.title.text,
+                                event.title.text.encode("utf-8"),
                                 parse_date(event.when[0].start),
                                 parse_date(event.when[0].end)
                             ))
                     # download contact info the first time we see this title,
                     # otherwise person will be grabbed from self.people
-                    self.get_person(event.title.text)
+                    self.get_person(event.title.text.encode("utf-8"))
             except Exception as exc: # pylint: disable=W0703
                 # We don't really care what happened, we just know we can't trust
                 # whatever we managed to sync from Google.
